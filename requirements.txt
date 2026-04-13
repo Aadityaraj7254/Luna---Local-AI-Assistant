@@ -1,0 +1,25 @@
+# ── Core ───────────────────────────────────────────
+flask>=3.0.0
+flask-cors>=4.0.0
+requests>=2.31.0
+
+# ── File processing ─────────────────────────────────
+pdfplumber>=0.10.0          # PDF text + table extraction
+python-docx>=1.1.0          # Word document (.docx)
+pandas>=2.0.0               # Excel / CSV analysis
+openpyxl>=3.1.0             # Excel read engine (.xlsx)
+xlrd>=2.0.1                 # Excel read engine (.xls)
+Pillow>=10.0.0              # Image utilities
+
+# ── Video (optional — large package ~50MB) ──────────
+# Uncomment to enable video frame extraction:
+# opencv-python>=4.8.0
+
+# ── Archive support ─────────────────────────────────────
+# zipfile is stdlib — no install needed
+rarfile>=4.0               # RAR extraction (also needs WinRAR/unrar on PATH)
+
+# ── Voice features (optional) ───────────────────────
+# SpeechRecognition>=3.10.0
+# pyttsx3>=2.90
+# pyaudio>=0.2.14

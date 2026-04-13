@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>L.U.N.A</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+  <div class="grid-bg"></div>
+  <div class="scanline"></div>
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <!-- ══ HISTORY PANEL ══ -->
+  <div class="history-overlay" id="historyOverlay" onclick="closeHistory()"></div>
+  <aside class="history-panel" id="historyPanel">
+    <div class="history-header">
+      <span class="history-title">SESSION HISTORY</span>
+      <div class="history-actions">
+        <button class="hud-btn" onclick="copyFullChat()"
+          style="font-size:9px;padding:5px 10px;color:var(--info);border-color:rgba(56,189,248,0.4);">⎘ COPY
+          ALL</button>
+        <button class="hud-btn" onclick="deleteAllHistory()"
+          style="font-size:9px;padding:5px 10px;color:var(--danger);border-color:rgba(255,68,102,0.4);">DELETE
+          ALL</button>
+        <button class="hud-btn" onclick="closeHistory()" style="font-size:9px;padding:5px 10px;">CLOSE ×</button>
+      </div>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </aside>
+
+  <!-- ══ MODEL SWITCH MODAL ══ -->
+  <div class="modal-overlay" id="modelModalOverlay" onclick="closeModelModal()"></div>
+  <div class="modal-box" id="modelModal">
+    <div class="modal-title">SWITCH MODEL</div>
+    <div class="modal-sub">Changes apply to the next message. Conversation history is preserved.</div>
+    <div class="model-grid" id="modelGrid"></div>
+    <button class="hud-btn" onclick="closeModelModal()"
+      style="width:100%;margin-top:12px;font-size:10px;">CANCEL</button>
+  </div>
+
+  <!-- ══ HEADER ══ -->
+  <header class="header">
+    <div class="logo-wrap">
+      <div class="logo">L.U.N.A</div>
+      <div class="luna-state-badge" id="lunaStateBadge">ACTIVE</div>
+    </div>
+    <div class="header-right">
+      <div class="status-row">
+        <div class="dot" id="dot"></div>
+        <span class="status-txt" id="statusTxt">OFFLINE</span>
+      </div>
+      <button class="model-display-btn" id="modelDisplayBtn" onclick="openModelModal()" title="Click to switch model">
+        <span id="modelDisplayName">—</span>
+        <span class="model-display-arrow">⌄</span>
+      </button>
+      <select id="modelSel" style="display:none">
+        <option value="llama3.2">llama3.2</option>
+      </select>
+
+      <!-- ── Assistant ON/OFF (header) ── -->
+      <button class="hud-btn assistant-hdr-btn" id="assistantHeaderBtn" onclick="toggleAssistant()"
+        title="Toggle AI assistant on/off">⏻ LUNA ON</button>
+
+      <!-- ── Speaker toggle (header) ── -->
+      <button class="hud-btn speaker-hdr-btn" id="speakerBtn" onclick="toggleTTS()"
+        title="Mute/unmute speaker">🔊</button>
+
+      <button class="hud-btn" id="connBtn" onclick="checkStatus()">CONNECT</button>
+    </div>
+  </header>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="sidebar">
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">QUICK COMMANDS</div>
+        <div class="chips" id="quickChips">
+          <div class="chip" onclick="quickSend('What can you help me with?')">capabilities</div>
+          <div class="chip" onclick="quickSend('Give me a motivational quote')">motivate me</div>
+          <div class="chip" onclick="quickSend('What are 3 tips for productivity?')">productivity</div>
+          <div class="chip" onclick="quickSend('Write a Python hello world')">write code</div>
+          <div class="chip" onclick="quickSend('Explain machine learning simply')">explain ML</div>
+          <div class="chip" onclick="quickSend('Tell me a fun tech fact')">fun fact</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">SESSION</div>
+        <div class="stat-row"><span>Messages</span><span id="msgCount">0</span></div>
+        <div class="stat-row"><span>Active model</span><span id="activeModel">—</span></div>
+        <div class="stat-row"><span>Status</span><span id="sideStatus">Offline</span></div>
+        <div class="stat-row"><span>Assistant</span><span id="assistantState">On</span></div>
+        <div class="stat-row"><span>Context turns</span><span id="contextTurns">0</span></div>
+        <button class="hud-btn full-btn" onclick="openHistory()">VIEW HISTORY</button>
+        <button class="hud-btn full-btn" onclick="copyFullChat()"
+          style="color:var(--info);border-color:rgba(56,189,248,0.4);margin-top:4px;">⎘ COPY CHAT</button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">VOICE</div>
+        <div class="stat-row"><span>Voice system</span><span id="wakeStatus">Off</span></div>
+        <div class="stat-row"><span>Mic state</span><span id="micStatus">Off</span></div>
+        <div class="stat-row"><span>Speaker</span><span id="ttsStatus">On</span></div>
+        <div class="speed-wrap">
+          <span class="speed-label">Speed</span>
+          <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0"
+            oninput="updateSpeed(this.value)" />
+          <span class="speed-val" id="speedVal">1.0×</span>
+        </div>
+        <button class="hud-btn full-btn" id="voiceCmdBtn" onclick="toggleVoiceCommands()">VOICE CMDS: OFF</button>
+        <button class="hud-btn full-btn" onclick="toggleTTS()">TOGGLE SPEAKER</button>
+        <button class="hud-btn full-btn" id="lunaToggleBtn" onclick="toggleAssistant()">LUNA: ON</button>
+      </div>
+
+      <div class="hint-box">
+        <div class="hint-title">VOICE COMMANDS</div>
+        <div class="hint-line">"luna on" → 🎤 mic starts instantly</div>
+        <div class="hint-line">5s silence → ⏹ auto-sends to AI</div>
+        <div class="hint-line">"send" → ✅ submit immediately</div>
+        <div class="hint-line">Click 🔴 → stop (no send)</div>
+      </div>
+
+      <div class="hint-box" style="margin-top:0">
+        <div class="hint-title">SYSTEM COMMANDS</div>
+        <div class="hint-line">"open chrome / brave / edge"</div>
+        <div class="hint-line">"close [app / browser]"</div>
+        <div class="hint-line">"play [song] on youtube"</div>
+        <div class="hint-line">"play [song] on spotify"</div>
+        <div class="hint-line">"search [query] on google"</div>
+        <div class="hint-line">"search youtube for [query]"</div>
+      </div>
+
+      <div class="hint-box" style="margin-top:0">
+        <div class="hint-title">KEYBOARD</div>
+        <div class="hint-line">Enter → send message</div>
+        <div class="hint-line">Shift+Enter → new line</div>
+        <div class="hint-line">Ctrl+L → clear session</div>
+        <div class="hint-line">Escape → stop stream</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">SUPPORTED FILES</div>
+        <div class="file-legend">
+          <div class="fl-row"><span class="fl-icon">🖼</span><span class="fl-label">Images (jpg, png…)</span></div>
+          <div class="fl-row"><span class="fl-icon">📄</span><span class="fl-label">PDF documents</span></div>
+          <div class="fl-row"><span class="fl-icon">📝</span><span class="fl-label">Word (.docx)</span></div>
+          <div class="fl-row"><span class="fl-icon">📊</span><span class="fl-label">Excel / CSV</span></div>
+          <div class="fl-row"><span class="fl-icon">💻</span><span class="fl-label">Code &amp; text files</span></div>
+          <div class="fl-row"><span class="fl-icon">🎬</span><span class="fl-label">Video (frames)</span></div>
+          <div class="fl-row"><span class="fl-icon">🗂</span><span class="fl-label">ZIP / RAR archives</span></div>
+        </div>
+        <div class="fl-note">👁 vision model needed for images/video</div>
+      </div>
+
+      <button class="clear-btn" onclick="clearChat()">CLEAR SESSION</button>
+    </aside>
+
+    <!-- ══ CHAT SECTION ══ -->
+    <section class="chat-section">
+      <div class="chat-area" id="chat">
+        <div class="welcome">
+          <div class="welcome-logo">L.U.N.A</div>
+          <div class="welcome-sub">Local Unified Neural Assistant</div>
+          <div class="welcome-hint">Click CONNECT · Say "luna on" → speak → auto-sends after 5s silence · 📎 attach files</div>
+        </div>
+      </div>
+
+      <div class="file-strip" id="fileStrip"></div>
+
+      <div class="upload-progress" id="uploadProgress">
+        <div class="upload-bar" id="uploadBar"></div>
+        <span class="upload-label" id="uploadLabel">Processing…</span>
+      </div>
+
+      <div class="input-area">
+        <button class="mic-btn" id="micBtn" onclick="manualMicToggle()" title="Click to speak">🎤</button>
+
+        <input type="file" id="fileInput" multiple
+          accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.py,.js,.ts,.jsx,.tsx,.json,.xml,.yaml,.yml,.html,.css,.sh,.bat,.c,.cpp,.java,.rs,.go,.php,.rb,.sql,.zip,.rar"
+          style="display:none" onchange="onFilesSelected(this.files)" />
+
+        <button class="attach-btn" onclick="document.getElementById('fileInput').click()"
+          title="Attach files">📎</button>
+
+        <textarea class="msg-input" id="msgInput" rows="1"
+          placeholder="Type (Shift+Enter for newline), say \"luna on\" then \"send\", or attach a file…"
+          oninput="autoResizeTextarea(this)"></textarea>
+
+        <!-- Stop button — shown during streaming -->
+        <button class="stop-btn" id="stopBtn" onclick="stopStream()" title="Stop generating">⏹</button>
+
+        <button class="send-btn" id="sendBtn" onclick="sendMsg()" disabled>SEND ›</button>
+      </div>
+
+      <div class="mic-status-bar" id="micStatusBar"></div>
+    </section>
+  </main>
+
+  <div class="drop-overlay" id="dropOverlay">
+    <div class="drop-box">
+      <div class="drop-icon">📎</div>
+      <div class="drop-text">Drop files here</div>
+    </div>
+  </div>
+
+  <script src="/static/js/main.js"></script>
+</body>
+
+</html>
